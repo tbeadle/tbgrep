@@ -16,26 +16,63 @@
 #
 # Copyright (C) 2011 Luke Macken <lmacken@redhat.com>
 
+import argparse
 import sys
-import fileinput
 
 import tbgrep
 
 
-def main():
-    stats = False
-    if '--stats' in sys.argv:
-        stats = True
-        sys.argv.remove('--stats')
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        default=False,
+        help="Report unique tracebacks and the number of occurrences.",
+    )
+    parser.add_argument(
+        "--ignore-line-numbers",
+        action="store_true",
+        default=False,
+        help=(
+            "When reporting unique tracebacks, treat stack traces with varying line "
+            "numbers as the same."
+        ),
+    )
+    parser.add_argument(
+        "--ignore-exception-values",
+        action="store_true",
+        default=False,
+        help=(
+            "When reporting unique tracebacks, treat stack traces with varying values "
+            "for the exception as the same."
+        ),
+    )
+    parser.add_argument(
+        "files",
+        nargs="*",
+        type=argparse.FileType("r"),
+        help="The files to process.",
+    )
+    args = parser.parse_args(argv)
+    if not args.files:
+        args.files = [sys.stdin]
 
-    extractor = tbgrep.TracebackGrep(stats=stats)
+    extractor = tbgrep.TracebackGrep(
+        stats=args.stats,
+        ignore_line_numbers=args.ignore_line_numbers,
+        ignore_exception_values=args.ignore_exception_values,
+    )
 
-    for line in fileinput.input():
-        tb = extractor.process(line)
-        if not stats and tb:
-            print(tb)
-    if stats:
+    for file in args.files:
+        for line in file:
+            tb = extractor.process(line)
+            if not args.stats and tb:
+                print(tb)
+
+    if args.stats:
         extractor.print_stats()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

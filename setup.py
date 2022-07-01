@@ -5,7 +5,7 @@ try:
 except ImportError:
     pass
 
-version = '0.3.0'
+version = '0.3.1'
 
 f = open('README.rst')
 long_description = f.read()
@@ -39,8 +39,7 @@ setup(name='tbgrep',
       install_requires=[
           # -*- Extra requirements: -*-
       ],
-      test_suite='nose.collector',
-      tests_require=['nose'],
+      tests_require=['tox'],
       entry_points={
           'console_scripts' : [
               'tbgrep = tbgrep.commands:main',
